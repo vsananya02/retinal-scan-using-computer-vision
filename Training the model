@@ -1,0 +1,59 @@
+### Training model
+# teach the model to recognize eye damage from the sample images
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+# Prepare training data
+print(" Preparing training data.")
+
+# Load all sample images and their labels
+X_train = []
+y_train = []
+
+for img_file in image_files:
+    if img_file.endswith('.jpeg'):
+        # Get image name without extension
+        img_name = img_file.replace('.jpeg', '')
+
+        # Get label from trainLabels
+        label_row = labels[labels['image'] == img_name]
+        if not label_row.empty:
+            label = label_row['level'].values[0]
+
+            # Load and preprocess image
+            img_path = f'sample_images/sample/{img_file}'
+            img_array = preprocess_image(img_path)
+
+            X_train.append(img_array)
+            y_train.append(label)
+
+# Convert to numpy arrays
+X_train = np.array(X_train)
+y_train = np.array(y_train)
+
+print(f" Loaded {len(X_train)} training images")
+print(f" Label distribution: {np.bincount(y_train)}")
+
+# Split into train and validation
+X_train_split, X_val, y_train_split, y_val = train_test_split(
+    X_train, y_train, test_size=0.2, random_state=42
+)
+
+print(f"\n Training set: {len(X_train_split)} images")
+print(f" Validation set: {len(X_val)} images")
+
+# Train the model
+print("\n Starting training.")
+
+history = model.fit(
+    X_train_split, y_train_split,
+    validation_data=(X_val, y_val),
+    epochs=5,  # Quick training for demo
+    batch_size=4,
+    verbose=1
+)
+
+print("\n TRAINING COMPLETE!")
+print(f" Final training accuracy: {history.history['accuracy'][-1]:.2%}")
+print(f" Final validation accuracy: {history.history['val_accuracy'][-1]:.2%}")
