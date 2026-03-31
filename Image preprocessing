@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+import tensorflow as tf
+
+# Preprocessing function
+def preprocess_image(img_path, target_size=(224, 224)):
+    """
+    Load and preprocess retinal image
+    - Resize to target_size
+    - Normalize to [0, 1] range
+    """
+    img = Image.open(img_path)
+    img = img.resize(target_size)
+    img_array = np.array(img) / 255.0  # Normalize to 0-1
+    return img_array
+
+# Test preprocessing
+img_path = 'sample_images/sample/10_left.jpeg'
+
+# Original
+original_img = Image.open(img_path)
+
+# Preprocessed
+processed_img = preprocess_image(img_path)
+
+# Display both
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+axes[0].imshow(original_img)
+axes[0].set_title(f'Original: {original_img.size}', fontsize=12)
+axes[0].axis('off')
+
+axes[1].imshow(processed_img)
+axes[1].set_title(f'Preprocessed: {processed_img.shape[:2]}', fontsize=12)
+axes[1].axis('off')
+
+plt.tight_layout()
+plt.show()
+
+print(f" Original size: {original_img.size}")
+print(f" Preprocessed size: {processed_img.shape}")
+print(f" Pixel value range: [{processed_img.min():.2f}, {processed_img.max():.2f}]")
+
+Output-
+ Original size: (4752, 3168)
+ Preprocessed size: (224, 224, 3)
+ Pixel value range: [0.00, 1.00]
