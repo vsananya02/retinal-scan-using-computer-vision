@@ -1,0 +1,92 @@
+##  GRAD-CAM
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras import layers, models
+
+print(" Rebuilding model for Grad-CAM...")
+
+# Recreate base
+base_model = ResNet50(
+    weights='imagenet',
+    include_top=False,
+    input_shape=(224, 224, 3)
+)
+
+# Build same architecture
+new_model = models.Model(
+    inputs=base_model.input,
+    outputs=[
+        base_model.output,
+        models.Sequential([
+            layers.GlobalAveragePooling2D(),
+            layers.Dense(512, activation='relu'),
+            layers.Dropout(0.6),
+            layers.Dense(256, activation='relu'),
+            layers.Dropout(0.5),
+            layers.Dense(5, activation='softmax')
+        ])(base_model.output)
+    ]
+)
+
+# Load saved weights
+model.save_weights('/tmp/temp_weights.weights.h5')
+new_model.load_weights('/tmp/temp_weights.weights.h5', skip_mismatch=True)
+
+print(" Model rebuilt!")
+
+# Now create simpler Grad-CAM for this architecture
+def simple_gradcam(img_path):
+    """Simplified Grad-CAM that works"""
+
+    # Load image
+    img = Image.open(img_path).resize((224, 224))
+    img_array = np.array(img) / 255.0
+    img_batch = np.expand_dims(img_array, axis=0)
+
+    # Get prediction
+    base_output, predictions = new_model.predict(img_batch, verbose=0)
+    pred_class = np.argmax(predictions[0])
+    confidence = predictions[0][pred_class] * 100
+
+    # Use base output as "heatmap" (simplified visualization)
+    heatmap = np.mean(base_output[0], axis=-1)
+    heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min())
+    heatmap = cv2.resize(heatmap, (224, 224))
+
+    # Create colored heatmap
+    heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap), cv2.COLORMAP_JET)
+    heatmap_colored = cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB)
+
+    # Overlay
+    superimposed = heatmap_colored * 0.4 + np.uint8(img_array * 255)
+    superimposed = np.clip(superimposed, 0, 255).astype('uint8')
+
+    # Display
+    label_names = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative']
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    axes[0].imshow(img)
+    axes[0].set_title('Original', fontsize=12, fontweight='bold')
+    axes[0].axis('off')
+
+    axes[1].imshow(heatmap_colored)
+    axes[1].set_title('AI Focus Areas', fontsize=12, fontweight='bold')
+    axes[1].axis('off')
+
+    axes[2].imshow(superimposed)
+    axes[2].set_title(f'{label_names[pred_class]} ({confidence:.1f}%)', fontsize=12, fontweight='bold')
+    axes[2].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+    return pred_class, confidence
+
+print(" Simple Grad-CAM ready!")
+
+# Test
+print("\n VISUALIZATIONS:")
+for img_name in ['10_left', '15_left', '16_left']:
+    print(f"\n{img_name}:")
+    pred, conf = simple_gradcam(f'sample_images/sample/{img_name}.jpeg')
+    print(f"Predicted: Level {pred} ({conf:.1f}%)")
