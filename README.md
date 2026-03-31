@@ -63,6 +63,3 @@ git clone <your-repo>
 cd dr-detection-cnn
 pip install -r requirements.txt
 python main.py --image samples/16_left.jpeg --explain
-<img width="640" height="453" alt="image" src="https://github.com/user-attachments/assets/37074698-b03b-45e7-a4de-782d59da7043" />
-
-<img width="1198" height="471" alt="image" src="https://github.com/user-attachments/assets/27142b52-50d2-4eeb-b74c-be7d891874ce" />
