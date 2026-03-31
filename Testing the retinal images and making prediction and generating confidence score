@@ -1,0 +1,75 @@
+## testing to make predictions, testing and checking confidence scores, predictions and visual comparision
+import numpy as np
+import matplotlib.pyplot as plt
+
+def predict_single_image(model, img_path, true_label=None):
+
+    # Load and preprocess
+    img_array = preprocess_image(img_path)
+    img_batch = np.expand_dims(img_array, axis=0)
+
+    # Predict
+    predictions = model.predict(img_batch, verbose=0)
+    predicted_class = np.argmax(predictions[0])
+    confidence = predictions[0][predicted_class] * 100
+
+    # Label names
+    label_names = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative']
+
+    # Display
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Show image
+    ax1.imshow(img_array)
+    ax1.axis('off')
+
+    # Title
+    if true_label is not None:
+        title = f'TRUE: Level {true_label} ({label_names[true_label]})\n'
+        title += f'PREDICTED: Level {predicted_class} ({label_names[predicted_class]})\n'
+        title += f'Confidence: {confidence:.1f}%'
+        color = 'green' if predicted_class == true_label else 'red'
+    else:
+        title = f'PREDICTED: Level {predicted_class} ({label_names[predicted_class]})\n'
+        title += f'Confidence: {confidence:.1f}%'
+        color = 'blue'
+
+    ax1.set_title(title, fontsize=12, fontweight='bold', color=color)
+
+    # Probability chart
+    colors = ['green', 'yellow', 'orange', 'red', 'darkred']
+    ax2.barh(label_names, predictions[0] * 100, color=colors)
+    ax2.set_xlabel('Probability (%)', fontsize=11)
+    ax2.set_title('Confidence Scores', fontsize=12, fontweight='bold')
+    ax2.set_xlim([0, 100])
+
+    # Add labels
+    for i, v in enumerate(predictions[0] * 100):
+        ax2.text(v + 2, i, f'{v:.1f}%', va='center', fontsize=10)
+
+    plt.tight_layout()
+    plt.show()
+
+    return predicted_class, confidence
+
+# Test predictions
+print(" AI DIAGNOSIS - MAKING PREDICTIONS")
+print("=" * 50)
+
+test_images = ['10_left', '15_left', '16_left']
+
+for img_name in test_images:
+    print(f"\n Patient Image: {img_name}.jpeg")
+
+    # Get true label
+    true_label = labels[labels['image'] == img_name]['level'].values[0]
+
+    # Predict
+    img_path = f'sample_images/sample/{img_name}.jpeg'
+    pred_class, conf = predict_single_image(model, img_path, true_label)
+
+    print(f"   Actual Diagnosis: Level {true_label}")
+    print(f"   AI Prediction: Level {pred_class} ({conf:.1f}% confidence)")
+    print(f"   {' CORRECT DIAGNOSIS' if pred_class == true_label else ' INCORRECT'}")
+
+print(" Prediction demonstration complete!")
