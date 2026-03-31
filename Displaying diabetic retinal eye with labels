@@ -1,0 +1,29 @@
+import matplotlib.pyplot as plt
+from PIL import Image
+
+# Function to display image with its label
+def show_image_with_label(image_name, labels_df):
+    # Get the label
+    label = labels_df[labels_df['image'] == image_name]['level'].values[0]
+
+    # Load image
+    img_path = f'sample_images/sample/{image_name}.jpeg'
+    img = Image.open(img_path)
+
+    # Display
+    plt.figure(figsize=(8, 8))
+    plt.imshow(img)
+    plt.axis('off')
+
+    label_text = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative']
+    plt.title(f'{image_name} - Level {label}: {label_text[label]}', fontsize=14, fontweight='bold')
+    plt.show()
+
+# Test with a few images
+print(" Viewing sample images with their labels:\n")
+test_images = ['10_left', '15_left', '16_left']
+
+for img_name in test_images:
+    show_image_with_label(img_name, labels)
+
+
