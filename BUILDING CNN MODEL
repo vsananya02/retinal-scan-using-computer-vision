@@ -1,0 +1,65 @@
+### BUILDING CNN MODEL
+## IMAGE-> CON2D-> MAXPOOLING->CONV2D->MAXPOOLING->FLATTEN->DENSE->OUTPUT
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# Build CNN Model
+def build_cnn_model(input_shape=(224, 224, 3), num_classes=5):
+    """
+
+    Args:
+        input_shape: Image dimensions (height, width, channels)
+        num_classes: Number of severity levels (0-4)
+
+    Returns:
+        Compiled Keras model
+    """
+
+    model = keras.Sequential([
+        # Input layer
+        layers.Input(shape=input_shape),
+
+        # First Convolutional Block
+        layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),  # Prevent overfitting
+
+        # Second Convolutional Block
+        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),
+
+        # Third Convolutional Block
+        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),
+
+        # Flatten and Dense Layers
+        layers.Flatten(),
+        layers.Dense(128, activation='relu'),
+        layers.Dropout(0.5),
+
+        # Output layer (5 classes: 0, 1, 2, 3, 4)
+        layers.Dense(num_classes, activation='softmax')
+    ])
+
+    # Compile model
+    model.compile(
+        optimizer='adam',
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    return model
+
+# Create the model
+print(" Building CNN model.")
+model = build_cnn_model()
+
+# Display architecture
+print("\n MODEL ARCHITECTURE:")
+model.summary()
+
+print("\n Model built successfully!")
+print(f" Total parameters: {model.count_params():,}")
